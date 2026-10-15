@@ -1,0 +1,13 @@
+measurement: SPICE deck unchanged after connecting previously separate pins = True
+verdict: FAIL topology-driven deck claim
+measurement: invalid checksum accepted, bytes = 1
+verdict: FAIL HEX validation
+measurement: alternate deck requested custom node12V; returned custom = None
+measurement: hardwired adc0 = 2.5
+verdict: FAIL generic simulation claim
+positive control: pin map changes wiper => adc0
+measurement: deck unchanged True
+verdict: FAIL generic graph extraction
+positive control: valid HEX data byte count 1
+measurement: corrupt checksum data byte count 1
+verdict: FAIL HEX validation

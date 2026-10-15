@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.dylib
+*.dll
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing & coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# User-exported project saves & simulation logs
+project_vsm.json
+*.log
+repomix-output.*
+_local/
+.tmp/
+.pytest_tmp/
+
+# Third-party tutorial material (PDF text extractions and page renders): local research only, never distributed
+docs/reference-*.md
+docs/mwe-sources/*.png
+docs/screenshots/proteus-reference-*.png
+

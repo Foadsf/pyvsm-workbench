@@ -1,0 +1,139 @@
+Windows-only local Antigravity claim excerpts; historical evidence, not current capability claims.
+
+## Open-Source Proteus VSM Implementation | Indexed steps 0-131
+I have comprehended the specification document and implemented the complete open-source Proteus VSM suite in the nested folder [`OpenVSM/`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM).
+### Key Implementation Highlights
+- **Modular Architecture & Entry Points:** Organized clean packages for [`core/`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core) and [`ui/`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui), alongside standard entry points [`main.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/main.py) and standalone scripts ([`openvsm_suite.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/openvsm_suite.py), [`openvsm_canonical.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/openvsm_canonical.py), and [`proteus_vsm_core.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/proteus_vsm_core.py)).
+- **All 5 Canonical Subsystems:** Built the interactive Manhattan orthogonal wire router with [`NetlistCompiler`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/netlist_compiler.py) union-find SPICE extraction, [`NgSpiceBridge`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/spice_bridge.py) C-FFI / MNA solver, [`MultiMCUBackend`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/mcu/multi_mcu.py) (PIC18F452, ATmega328P, STM32F103), [`SourceDebuggerWidget`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/instruments/debugger.py) (breakpoints, F11 stepping, SFR watches), virtual instruments (4-Channel DSO, I2C Protocol Analyser, 8-digit Frequency Meter, HD44780 LCD, POT-HG, Voltmeter, 7-Segment LED, UART terminal), and KiCad `.kicad_sym` / `.subckt` importer.
+- **Verification:** Created unit and headless GUI test suites in [`tests/`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/tests) with all 7 test cases passing. Run with `python main.py` or `python -m unittest discover -s tests -v`.
+### 1. Run Automated Test Suites
+Navigate to the [`OpenVSM/`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM) directory and run the test runner (covers MNA SPICE nodal integration, union-find net extraction, multi-MCU cycle stepping, breakpoints, KiCad symbol parsing, and headless Qt GUI initialization):
+```powershell
+cd %USERPROFILE%\Downloads\20261014\Proteus_Python\OpenVSM
+python -m unittest discover -s tests -v
+```
+---
+### 2. Launch the Interactive GUI Studio
+To launch the full modular desktop studio:
+```powershell
+cd %USERPROFILE%\Downloads\20261014\Proteus_Python\OpenVSM
+python main.py
+```
+*(Alternatively, run the monolithic single-file build: `python openvsm_suite.py`)*
+---
+### 3. Interactive Testing Checklist Inside the Studio
+- **Co-Simulation Control:** Click **▶ Run** on the top toolbar to start lockstep co-simulation between SPICE and the MCU core. Click **⏸ Pause** or **↺ Reset** at any time.
+- **Source-Level Debugger:** Press **F11 (Step Into)** to execute instructions cycle-by-cycle while watching the Program Counter (`➡`) advance in the **CPU Source & Variables** tab, or select an address and click **🔴 Toggle Breakpoint**.
+- **Interactive Peripherals:**
+  - Click the **`+`** / **`-`** buttons or scroll the mouse wheel over the **POT-HG (RV1)** potentiometer to alter resistance and watch the analog voltage change live on `ADC0`, the LCD, and the 4-Channel DSO.
+  - Click the **PB_2 Pushbutton** to toggle mechanical switch contacts between 5V pull-up and 0V ground.
+  - Check the **HD44780 LCD** displaying live voltage and frequency, and the **Virtual Terminal** logging telemetry frames.
+  - Inspect the **I2C Protocol Analyser** decoding `START [S]`, slave address `0xA0 (A)`, and `STOP [P]` packets.
+- **Interactive Wiring & Netlist Compilation:** Click any pin terminal ([`ProteusPinSquare`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/pins.py)) to initiate an orthogonal Manhattan wire, click a destination pin to connect, or select an existing wire and hit **Delete**. The SPICE netlist automatically re-compiles.
+
+## Open-Source Proteus VSM Implementation | Indexed steps 132-240
+### Root Cause & Fix
+In PySide6 (Qt 6), the `QFont` constructor signature is:
+```python
+QFont(family: str, pointSize: int = -1, weight: int = -1, italic: bool = False)
+```
+Passing `QFont.StyleItalic` (a `QFont.Style` enum) as the 3rd positional argument caused `TypeError: 'QFont.__init__' called with wrong argument types: (str, int, Style)` during canvas paint events.
+### Changes Made
+1. **Fixed Font Styling:** Updated [`voltmeter_item.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/components/voltmeter_item.py#L44-L48) (and the standalone scripts [`openvsm_suite.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/openvsm_suite.py), [`openvsm_canonical.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/openvsm_canonical.py), and [`proteus_vsm_core.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/proteus_vsm_core.py)) to configure italic styling via `font.setItalic(True)`.
+2. **Enhanced Test Suite:** Added a full-scene `paint()` pass to [`tests/test_gui.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/tests/test_gui.py#L55-L66) to verify that all graphics items render without paint exceptions.
+### Re-Run
+You can now launch the studio cleanly:
+```powershell
+cd %USERPROFILE%\Downloads\20261014\Proteus_Python\OpenVSM
+python main.py
+```
+I have initialized the Git repository in [OpenVSM](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM) on branch `main`, installed the `gitstamp` hook, added [.gitignore](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/.gitignore), and created the initial commit (`099836f`), leaving the working tree completely clean. I have queued the lesson across the fleet and updated my lessons learned with this rule in [LESSONS_LEARNED.md](file:///%USERPROFILE%/.gemini/antigravity/memory/LESSONS_LEARNED.md) to ensure all newly scaffolded projects establish a proper Git repository immediately.
+
+## Open-Source Proteus VSM Implementation | Indexed steps 241-385
+All 6 canonical upgrades have been implemented, tested, and committed to the repository in [`770e97d`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM):
+1. **Topology-Driven Connectivity:** Added [`_pins_connected`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/main_window.py#L464) and [`_sync_mcu_inputs`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/main_window.py#L479) to [`OpenVSMStudio`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/main_window.py) and [`LockstepWorker`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/co_simulation.py#L13); disconnecting wires on the canvas now realistically floats inputs (verified in [`test_wire_disconnection_floats_input`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/tests/test_gui.py#L72)).
+2. **Native `libsimavr` C-FFI:** Restored C-function signatures and runtime execution in [`MultiMCUBackend`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/mcu/multi_mcu.py#L90-L115).
+3. **Dynamic Disassembly:** Added [`disassemble_flash`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/core/mcu/firmware.py#L52) to decode PIC18 and AVR opcodes upon loading Intel HEX files into the debugger.
+4. **Virtual Terminal Integration:** Connected [`VirtualTerminalWidget`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/instruments/terminal.py#L12) directly to the right dock with full bidirectional serial buffering.
+5. **Component Deletion & Full JSON Project Persistence:** Enabled component + attached wire deletion in [`InteractiveSchematicCanvas.keyPressEvent`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/canvas.py#L68) and added wire-aware [`save_project_json`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/main_window.py#L380) / [`load_project_json`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/main_window.py#L400).
+6. **Import Resilience & Test Suite:** Made [`main.py`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/main.py#L1) package-folder-agnostic, added `toggle()` to [`InteractiveButtonItem`](file:///%USERPROFILE%/Downloads/20261014/Proteus_Python/OpenVSM/ui/components/button_item.py#L48), and verified all 10 tests pass in 0.36s.
+Would you like me to implement the **A* Obstacle-Avoiding Wire Router** and the **Double-Click Component Property Inspector** next?
+
+## Python Proteus VSM Replica Implementation | Indexed steps 0-35
+Compiles. Now a headless smoke test of the GUI apps and the backend self-test.
+My class-name guess for the second app was wrong, so I'll check the real name and add a README.
+I implemented the blueprint in `VSM_Python\pyvsm_replica`. The two GUI apps open without errors in an offscreen smoke test, but I haven't tried clicking through them. The backend's real tool wrappers have never run.
+The blueprint contains three complete Python programs, so I extracted them as written:
+- **`pyvsm.py`**: the main PyVSM Studio app.
+  - It has the interactive schematic, the analog circuit solver and a swappable microcontroller core.
+  - It also has the debugger and watch window, the I2C analyzer, and the waveform graph with two cursors.
+  - It opens as `PyVSMMainWindow`.
+- **`pyvsm_studio_ux.py`**: the ISIS-style interface demo, covering the minimap, mode toolbar, wiring, and dragging probes onto a graph. It opens as `ProteusUXWorkbench`.
+- **`vsm_floss_backend.py`**: wrappers around ngspice, sigrok-cli, gdb/pygdbmi and gpsim. Its self-test ran and reports that none of those tools are installed on this machine. I only confirmed that discovery step.
+I also added a `README.md` and a `requirements.txt`, and installed PySide6, pyqtgraph and pygdbmi.
+To run the apps: `python pyvsm.py` or `python pyvsm_studio_ux.py` from the `pyvsm_replica` folder.
+To use the real simulation backends, install the external tools (ngspice, sigrok-cli, gdb-multiarch, gpsim, simavr). The blueprint lists apt, winget and choco commands for them.
+The blueprint gives the three programs as separate files and doesn't merge them into one app. If you want that, say so. I'd start by wiring the backend wrappers into `pyvsm.py`.
+I launched `pyvsm.py`, and its window should now be open on your desktop. It has been running for about 3 seconds with no errors in the log, and I haven't looked at the window myself.
+Things to try:
+- Click **S1 (MODE)** to cycle the display mode.
+- Use the **R4 +/-** buttons to change the ADC value.
+- Use the **MCP9800 +/-** buttons to change the temperature.
+- Press **F10** to step, or double-click a source line to set a breakpoint.
+To run the other app, `pyvsm_studio_ux.py`, use `python pyvsm_studio_ux.py` from the same folder. Close the window to stop the app.
+It's a **demonstrative prototype**: a proof of concept for the Proteus VSM workflow and interface, not a general circuit simulator.
+**What's real**
+- The GUI is a working PySide6 application with docks, a debugger, a watch window, a graph with two cursors, and play/step/pause.
+- The analog part is real but tiny. It solves one voltage-divider equation (R4 potentiometer → RA0) with NumPy.
+- The breakpoint, watchpoint and hardware-breakpoint logic works.
+**What's scripted**
+- The "microcontroller" is a hard-coded 8-line Python script, not a PIC emulator. The hex opcodes and the PIC-versus-RISC-V assembly text are cosmetic labels.
+- The I2C packets are formatted strings, not decoded from signals.
+- The schematic is painted directly with `QPainter` for this one demo circuit. You can't place parts, draw wires, or load a design.
+- The shipped demo circuit is hard-wired to one scenario: the Proteus Microchip evaluation-board tutorial.
+- None of the real tools (ngspice, gdb, gpsim, sigrok) are connected. `vsm_floss_backend.py` exists but nothing calls it.
+So you're seeing the interface, the interaction model and the co-simulation architecture working on one fixed scenario. It is not yet a Proteus replacement.
+**Why no window appeared earlier:** the app ran in a background session that probably wasn't attached to your desktop. Running it from your own terminal was the right fix.
+**Path to a real tool**, in order of effort:
+1. Add a schematic editor with a component library, wiring and a netlist.
+2. Generate SPICE from that netlist and run it in ngspice, replacing the single-equation solver.
+3. Replace the scripted MCU with gpsim, simavr or gdb driven over pipes, using real `.hex` or `.elf` files.
+4. Merge `pyvsm.py` and `pyvsm_studio_ux.py` into one application.
+I can start on step 1 or 2 if you want.
+I stopped the background GUI task. I also wrote the prompt for Gemini: [Gemini_MVP_Prompt.md](file:///%USERPROFILE%/Downloads/20261014/VSM_Python/Gemini_MVP_Prompt.md).
+It is meant to be pasted as one message into your Gemini chat. I haven't sent it or tried it there. I couldn't verify the model name "Gemini 4 Argon High", so the prompt doesn't depend on it.
+The prompt combines these techniques:
+- **Role and ground truth:** it states exactly which parts of the prototype are real and which are fake, and what is installed on your machine.
+- **Scope:** a fixed definition of the MVP, split into must-have, should-have and won't-have.
+- **Constraints:** use existing tools instead of writing new ones (ngspice, simavr, gpsim, sigrok), and keep the layers testable without the GUI.
+- **Workflow:** Gemini asks clarifying questions, then plans, then builds one phase at a time. Each phase has runnable acceptance tests, and Gemini lists any API it is unsure about.
+- **Output format:** complete files, exact run commands for Windows and Linux, and a checklist of expected results.
+- **Honesty rule:** Gemini may not claim it ran or tested anything.
+At the bottom there is a short loop for you: paste back the result of each phase, reply "next" or ask for a fix, and ask for a summary every three phases.
+**Decision for you:** I left the microcontroller as a "should-have" because simavr and gpsim aren't installed and the circuit editor plus ngspice is the larger step. If you'd rather make the MCU part of the MVP, tell me and I'll change the scope.
+
+## Python Proteus VSM Replica Implementation | Indexed steps 36-118
+Your two pastes are identical, so I reviewed it as one reply. Gemini followed the prompt: it asked clarifying questions, named two real conflicts, laid out a layered architecture, and gave a phase plan with runnable acceptance tests. I'd accept it with four corrections.
+**What I'd change**
+1. **Interactive stepping is the weak point.** Gemini plans to re-run `.tran` in short slices and carry state across them with `.ic`. That creates discontinuities and re-initialises the solver every slice. It is also slow when each slice launches an `ngspice -b` process. The proper route is `libngspice` with a background thread. You pause and resume it, change component values with `alter`, and use `GetVSRCData` for external sources. Make `libngspice` the primary interactive path and treat sliced CLI runs as a degraded fallback.
+2. **The RC acceptance test is too loose.** A tolerance of ±50 mV on a 3.16 V value would hide a bad state carry-over. Tighten it to ±5 mV.
+3. **The test fallback solver can mask problems.** Tests that pass on the fallback don't show that ngspice works. Once ngspice is installed, tests marked `ngspice` should fail rather than skip when it's missing, and the fallback should be used only in tests.
+4. **Phase 4 is too big.** It covers placement, wiring, undo, zoom, file I/O and the dialog all at once. Split it into 4a (placement, rotation, undo, zoom, save/load) and 4b (wiring, netlist export, ngspice dialog).
+The five defaults (package location, embedded SPICE models, library discovery, LED current sensing, MCU placeholder) are fine.
+**Suggested reply to Gemini**
+```
+Accept all 5 defaults, with these amendments:
+1. Interactive mode: libngspice (background thread + alter + GetVSRCData) is the primary path. The CLI path with .ic slicing is a documented degraded fallback; state the limitations in code comments.
+2. Tighten the RC test to ±5 mV, and add a check that the voltage is continuous across slice boundaries.
+3. Tests that need ngspice carry @pytest.mark.ngspice and FAIL (not skip) when ngspice is absent unless NGSPICE_OPTIONAL=1. ngspice is being installed on the host now.
+4. Split Phase 4 into 4a (placement/rotation/undo/zoom/save-load) and 4b (wiring/netlist export/ngspice dialog).
+5. List every ngspice/ctypes API you are unsure about under "Unverified".
+Next: Phase 1.
+```
+I can install ngspice here (I'd check that `winget` actually has a package first), then run each phase's tests and send you the results to paste back to Gemini. That would give Gemini real test output instead of your manual runs. Want me to do that?
+ngspice 46 is already on this machine (Qucs-S and KiCad builds), so I'll use that. Gemini's reply was a plan with no code, so I'm now implementing its six phases. Starting with the model layer.
+Now catalog, circuit, MCU interface, and I/O.
+Now the netlist layer (Phase 2).
+Now the engine layer (Phase 3): base types, CLI adapter, libngspice adapter, test fallback, coordinator.
+I'll stop here until the timer fires.
+Phases 1–3 pass (52 tests, on both libngspice and CLI engines). Now the UI: scene and view.
